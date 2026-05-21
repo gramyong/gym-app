@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { DataStore } from '../store/DataStore'
-import { getWeeklyStats, getMonthlyHeatmap, getSunday } from '../stats/StatsEngine'
+import { getWeeklyStats, getMonthlyHeatmap, getTrendData, getSunday } from '../stats/StatsEngine'
 
 const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
 
@@ -60,6 +60,51 @@ function MonthlyHeatmap({ sessions }) {
   )
 }
 
+function TrendChart({ sessions }) {
+  const trendData = useMemo(() => getTrendData(sessions, 8), [sessions])
+  const activeWeeks = trendData.filter(w => w.totalMinutes > 0).length
+
+  if (activeWeeks < 2) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-2xl p-4 mt-4">
+        <p className="text-sm font-semibold text-gray-700 mb-2">주간 추세</p>
+        <p className="text-center text-gray-400 text-sm py-8">
+          데이터가 더 쌓이면 추세를 볼 수 있습니다
+        </p>
+      </div>
+    )
+  }
+
+  const chartData = trendData.map(w => ({
+    ...w,
+    label: w.weekStart.slice(5).replace('-', '/'), // "MM/DD"
+  }))
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-2xl p-4 mt-4">
+      <p className="text-sm font-semibold text-gray-700 mb-4">주간 추세 (최근 8주)</p>
+      <ResponsiveContainer width="100%" height={180}>
+        <LineChart data={chartData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+          <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+          <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+          <Tooltip
+            formatter={(v) => [`${v}분`, '주간 합계']}
+            contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12 }}
+          />
+          <Line
+            type="monotone"
+            dataKey="totalMinutes"
+            stroke="#3b82f6"
+            strokeWidth={2}
+            dot={{ r: 4, fill: '#3b82f6', strokeWidth: 0 }}
+            activeDot={{ r: 6 }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
 export default function StatsTab() {
   const sessions = useMemo(() => DataStore.getSessions(), [])
   const weekData = useMemo(() => getWeeklyStats(sessions, getSunday(new Date())), [sessions])
@@ -109,6 +154,9 @@ export default function StatsTab() {
 
       {/* 월간 히트맵 */}
       <MonthlyHeatmap sessions={sessions} />
+
+      {/* 주간 추세선 */}
+      <TrendChart sessions={sessions} />
     </div>
   )
 }
