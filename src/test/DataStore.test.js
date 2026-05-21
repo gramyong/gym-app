@@ -56,6 +56,26 @@ describe('DataStore - sessions', () => {
   })
 })
 
+describe('DataStore - sessions edge cases', () => {
+  test('updateSession 존재하지 않는 id → 아무 변화 없음', () => {
+    DataStore.addSession({ date: '2026-05-21', exerciseName: '달리기', durationMinutes: 30 })
+    DataStore.updateSession('nonexistent-id', { durationMinutes: 999 })
+    expect(DataStore.getSessions()[0].durationMinutes).toBe(30)
+  })
+
+  test('deleteSession 존재하지 않는 id → 기존 세션 유지', () => {
+    DataStore.addSession({ date: '2026-05-21', exerciseName: '달리기', durationMinutes: 30 })
+    DataStore.deleteSession('nonexistent-id')
+    expect(DataStore.getSessions()).toHaveLength(1)
+  })
+
+  test('addSession id는 세션마다 고유', () => {
+    const a = DataStore.addSession({ date: '2026-05-21', exerciseName: '달리기', durationMinutes: 30 })
+    const b = DataStore.addSession({ date: '2026-05-21', exerciseName: '수영', durationMinutes: 45 })
+    expect(a.id).not.toBe(b.id)
+  })
+})
+
 describe('DataStore - favorites', () => {
   test('빈 상태에서 getFavorites()는 빈 배열 반환', () => {
     expect(DataStore.getFavorites()).toEqual([])

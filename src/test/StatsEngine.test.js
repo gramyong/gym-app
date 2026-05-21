@@ -117,4 +117,28 @@ describe('getTrendData', () => {
     expect(result[0]).toHaveProperty('weekStart')
     expect(result[0]).toHaveProperty('totalMinutes')
   })
+
+  test('해당 주 세션 합산값이 totalMinutes에 반영', () => {
+    // 2026-05-17 주 (일~토)에 세션 2개
+    const sessions = [s('2026-05-18', 30), s('2026-05-20', 45)]
+    const result = getTrendData(sessions, 4)
+    const thisWeek = result.find(w => w.weekStart === '2026-05-17')
+    expect(thisWeek?.totalMinutes).toBe(75)
+  })
+
+  test('운동 없는 주는 totalMinutes 0', () => {
+    // 현재 주에만 세션 있고 이전 주는 0
+    const sessions = [s('2026-05-20', 30)]
+    const result = getTrendData(sessions, 4)
+    const zeroWeeks = result.filter(w => w.totalMinutes === 0)
+    expect(zeroWeeks.length).toBeGreaterThanOrEqual(1)
+  })
+
+  test('weekStart는 항상 일요일 날짜', () => {
+    const result = getTrendData([s('2026-05-20', 30)], 3)
+    result.forEach(w => {
+      const d = new Date(w.weekStart + 'T12:00:00')
+      expect(d.getDay()).toBe(0) // 0 = 일요일
+    })
+  })
 })
