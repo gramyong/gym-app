@@ -16,6 +16,7 @@ export default function RecordTab() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [errors, setErrors] = useState({})
   const [toast, setToast] = useState(null)
+  const [favorites, setFavorites] = useState(() => DataStore.getFavorites())
 
   const closeToast = useCallback(() => setToast(null), [])
 
@@ -23,6 +24,23 @@ export default function RecordTab() {
     const { name, value } = e.target
     setForm(prev => ({ ...prev, [name]: value }))
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
+  }
+
+  function selectFavorite(name) {
+    setForm(prev => ({ ...prev, exerciseName: name }))
+    setErrors(prev => ({ ...prev, exerciseName: '' }))
+  }
+
+  function addFavorite() {
+    const name = form.exerciseName.trim()
+    if (!name) return
+    DataStore.addFavorite(name)
+    setFavorites(DataStore.getFavorites())
+  }
+
+  function removeFavorite(name) {
+    DataStore.removeFavorite(name)
+    setFavorites(DataStore.getFavorites())
   }
 
   function validate() {
@@ -55,6 +73,9 @@ export default function RecordTab() {
     }
   }
 
+  const currentName = form.exerciseName.trim()
+  const canAddFavorite = currentName && !favorites.includes(currentName)
+
   return (
     <div className="p-4 pb-6">
       {toast && <Toast message={toast.message} type={toast.type} onClose={closeToast} />}
@@ -74,9 +95,49 @@ export default function RecordTab() {
           />
         </div>
 
-        {/* 운동 이름 */}
+        {/* 운동 이름 + 즐겨찾기 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">운동 이름 *</label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-sm font-medium text-gray-700">운동 이름 *</label>
+            {canAddFavorite && (
+              <button
+                type="button"
+                onClick={addFavorite}
+                className="text-xs text-blue-600 font-medium"
+              >
+                + 즐겨찾기 추가
+              </button>
+            )}
+          </div>
+
+          {/* 즐겨찾기 칩 */}
+          {favorites.length > 0 && (
+            <div className="flex gap-2 overflow-x-auto pb-2 mb-2 scrollbar-none">
+              {favorites.map(fav => (
+                <div
+                  key={fav}
+                  className="flex items-center gap-1 flex-shrink-0 bg-blue-50 border border-blue-200 rounded-full pl-3 pr-2 py-1"
+                >
+                  <button
+                    type="button"
+                    onClick={() => selectFavorite(fav)}
+                    className="text-sm text-blue-700 font-medium whitespace-nowrap"
+                  >
+                    {fav}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeFavorite(fav)}
+                    className="text-blue-400 hover:text-red-500 text-xs leading-none ml-0.5"
+                    aria-label={`${fav} 즐겨찾기 제거`}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
           <input
             type="text"
             name="exerciseName"
