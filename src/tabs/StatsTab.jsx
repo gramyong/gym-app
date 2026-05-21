@@ -1,26 +1,69 @@
 import { useMemo } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { DataStore } from '../store/DataStore'
-import { getWeeklyStats, getSunday } from '../stats/StatsEngine'
+import { getWeeklyStats, getMonthlyHeatmap, getSunday } from '../stats/StatsEngine'
+
+const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
 
 function getMonthlySummary(sessions) {
   const now = new Date()
   const yyyy = now.getFullYear()
   const mm = String(now.getMonth() + 1).padStart(2, '0')
-  const prefix = `${yyyy}-${mm}`
-  const thisMonth = sessions.filter(s => s.date.startsWith(prefix))
+  const thisMonth = sessions.filter(s => s.date.startsWith(`${yyyy}-${mm}`))
   return {
     count: thisMonth.length,
     totalMinutes: thisMonth.reduce((sum, s) => sum + s.durationMinutes, 0),
   }
 }
 
+function MonthlyHeatmap({ sessions }) {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = now.getMonth() + 1
+
+  const days = useMemo(() => getMonthlyHeatmap(sessions, year, month), [sessions, year, month])
+
+  // 1일의 요일 (0=일) → 앞쪽 빈칸 수
+  const firstDow = new Date(year, month - 1, 1).getDay()
+  const blanks = Array(firstDow).fill(null)
+
+  const monthLabel = `${year}년 ${month}월`
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-2xl p-4 mt-4">
+      <p className="text-sm font-semibold text-gray-700 mb-3">{monthLabel} 히트맵</p>
+
+      {/* 요일 헤더 */}
+      <div className="grid grid-cols-7 mb-1">
+        {DAY_LABELS.map(d => (
+          <p key={d} className="text-center text-xs text-gray-400">{d}</p>
+        ))}
+      </div>
+
+      {/* 날짜 칸 */}
+      <div className="grid grid-cols-7 gap-1">
+        {blanks.map((_, i) => <div key={`b${i}`} />)}
+        {days.map(({ day, active }) => (
+          <div
+            key={day}
+            className={`aspect-square rounded-md flex items-center justify-center text-xs font-medium ${
+              active
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-100 text-gray-400'
+            }`}
+          >
+            {day}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function StatsTab() {
   const sessions = useMemo(() => DataStore.getSessions(), [])
   const weekData = useMemo(() => getWeeklyStats(sessions, getSunday(new Date())), [sessions])
   const summary = useMemo(() => getMonthlySummary(sessions), [sessions])
-
-  const maxMinutes = Math.max(...weekData.map(d => d.minutes), 1)
 
   return (
     <div className="p-4 pb-6">
@@ -63,6 +106,9 @@ export default function StatsTab() {
           </ResponsiveContainer>
         )}
       </div>
+
+      {/* 월간 히트맵 */}
+      <MonthlyHeatmap sessions={sessions} />
     </div>
   )
 }
