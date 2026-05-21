@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { DataStore } from '../store/DataStore'
+import { ImageStore } from '../store/ImageStore'
 import EditSessionModal from '../components/EditSessionModal'
+import SessionPhoto from '../components/SessionPhoto'
 
 function sortedSessions(sessions) {
   return [...sessions].sort((a, b) => {
@@ -37,6 +39,10 @@ function SessionItem({ session, onEdit, onDelete }) {
         </div>
       </div>
 
+      {session.imageId && (
+        <SessionPhoto imageId={session.imageId} className="w-full mt-2 max-h-36" />
+      )}
+
       {session.note && (
         <div className="mt-2">
           <button
@@ -63,11 +69,16 @@ export default function HistoryTab() {
   }
 
   function handleDelete(id) {
+    const session = sessions.find(s => s.id === id)
+    if (session?.imageId) ImageStore.delete(session.imageId)
     DataStore.deleteSession(id)
     refresh()
   }
 
   function handleSave(updates) {
+    if (updates.imageId === null && editTarget.imageId) {
+      ImageStore.delete(editTarget.imageId)
+    }
     DataStore.updateSession(editTarget.id, updates)
     refresh()
     setEditTarget(null)

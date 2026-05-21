@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { validateSession } from '../utils/validateSession'
+import SessionPhoto from './SessionPhoto'
 
 export default function EditSessionModal({ session, onSave, onClose }) {
   const [form, setForm] = useState({
@@ -9,6 +10,7 @@ export default function EditSessionModal({ session, onSave, onClose }) {
     note: session.note || '',
   })
   const [errors, setErrors] = useState({})
+  const [removePhoto, setRemovePhoto] = useState(false)
 
   function handleChange(e) {
     const { name, value } = e.target
@@ -21,12 +23,14 @@ export default function EditSessionModal({ session, onSave, onClose }) {
     const next = validateSession(form)
     if (Object.keys(next).length) { setErrors(next); return }
 
-    onSave({
+    const updates = {
       date: form.date,
       exerciseName: form.exerciseName.trim(),
       durationMinutes: Number(form.durationMinutes),
       note: form.note.trim(),
-    })
+    }
+    if (removePhoto) updates.imageId = null
+    onSave(updates)
   }
 
   return (
@@ -76,6 +80,19 @@ export default function EditSessionModal({ session, onSave, onClose }) {
               className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             />
           </div>
+
+          {session.imageId && !removePhoto && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">사진</label>
+              <div className="relative">
+                <SessionPhoto imageId={session.imageId} className="w-full max-h-48" />
+                <button
+                  type="button" onClick={() => setRemovePhoto(true)}
+                  className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm"
+                >✕</button>
+              </div>
+            </div>
+          )}
 
           <button type="submit" className="w-full bg-blue-600 text-white font-semibold py-4 rounded-xl text-base active:bg-blue-700">
             저장
