@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { DataStore } from '../store/DataStore'
+import { useAuth } from '../context/AuthContext'
 import { ImageStore } from '../store/ImageStore'
 import EditSessionModal from '../components/EditSessionModal'
 import SessionPhoto from '../components/SessionPhoto'
+import { formatPhotoTime } from '../utils/dateUtils'
 
 function sortedSessions(sessions) {
   return [...sessions].sort((a, b) => {
@@ -40,7 +42,12 @@ function SessionItem({ session, onEdit, onDelete }) {
       </div>
 
       {session.imageId && (
-        <SessionPhoto imageId={session.imageId} className="w-full mt-2 max-h-36" />
+        <div className="mt-2">
+          <SessionPhoto imageId={session.imageId} className="w-full max-h-36" />
+          {session.photoTakenAt && (
+            <p className="text-xs text-gray-400 mt-1">{formatPhotoTime(session.photoTakenAt)}</p>
+          )}
+        </div>
       )}
 
       {session.note && (
@@ -61,17 +68,18 @@ function SessionItem({ session, onEdit, onDelete }) {
 }
 
 export default function HistoryTab() {
-  const [sessions, setSessions] = useState(() => sortedSessions(DataStore.getSessions()))
+  const { user } = useAuth()
+  const [sessions, setSessions] = useState(() => sortedSessions(DataStore.getSessions(user.id)))
   const [editTarget, setEditTarget] = useState(null)
 
   function refresh() {
-    setSessions(sortedSessions(DataStore.getSessions()))
+    setSessions(sortedSessions(DataStore.getSessions(user.id)))
   }
 
   function handleDelete(id) {
     const session = sessions.find(s => s.id === id)
     if (session?.imageId) ImageStore.delete(session.imageId)
-    DataStore.deleteSession(id)
+    DataStore.deleteSession(user.id, id)
     refresh()
   }
 
@@ -79,7 +87,7 @@ export default function HistoryTab() {
     if (updates.imageId === null && editTarget.imageId) {
       ImageStore.delete(editTarget.imageId)
     }
-    DataStore.updateSession(editTarget.id, updates)
+    DataStore.updateSession(user.id, editTarget.id, updates)
     refresh()
     setEditTarget(null)
   }

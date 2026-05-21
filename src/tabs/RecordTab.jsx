@@ -1,20 +1,23 @@
 import { useState, useCallback, useRef } from 'react'
 import { DataStore } from '../store/DataStore'
+import { useAuth } from '../context/AuthContext'
 import { ImageStore } from '../store/ImageStore'
 import Toast from '../components/Toast'
 import { validateSession } from '../utils/validateSession'
-import { todayString } from '../utils/dateUtils'
+import { todayString, formatPhotoTime } from '../utils/dateUtils'
 import { compressImage } from '../utils/compressImage'
 
 const EMPTY_FORM = { date: todayString(), exerciseName: '', durationMinutes: '', note: '' }
 
 export default function RecordTab() {
+  const { user } = useAuth()
   const [form, setForm] = useState(EMPTY_FORM)
   const [errors, setErrors] = useState({})
   const [toast, setToast] = useState(null)
   const [favorites, setFavorites] = useState(() => DataStore.getFavorites())
-  const [photoFile, setPhotoFile] = useState(null)   // 압축된 Blob
-  const [photoPreview, setPhotoPreview] = useState(null) // 미리보기 URL
+  const [photoFile, setPhotoFile] = useState(null)
+  const [photoPreview, setPhotoPreview] = useState(null)
+  const [photoTakenAt, setPhotoTakenAt] = useState(null)
   const [saving, setSaving] = useState(false)
   const fileInputRef = useRef(null)
 
@@ -46,13 +49,15 @@ export default function RecordTab() {
   async function handlePhotoChange(e) {
     const file = e.target.files?.[0]
     if (!file) return
+    const takenAt = new Date().toISOString()
     try {
       const compressed = await compressImage(file)
       if (photoPreview) URL.revokeObjectURL(photoPreview)
       setPhotoFile(compressed)
       setPhotoPreview(URL.createObjectURL(compressed))
-    } catch {
-      setToast({ message: '사진 처리 실패', type: 'error' })
+      setPhotoTakenAt(takenAt)
+    } catch (err) {
+      setToast({ message: `사진 처리 실패: ${err.message}`, type: 'error' })
     }
     e.target.value = ''
   }
@@ -61,6 +66,7 @@ export default function RecordTab() {
     if (photoPreview) URL.revokeObjectURL(photoPreview)
     setPhotoFile(null)
     setPhotoPreview(null)
+    setPhotoTakenAt(null)
   }
 
   async function handleSubmit(e) {
@@ -74,21 +80,25 @@ export default function RecordTab() {
       if (photoFile) {
         imageId = await ImageStore.save(photoFile)
       }
-      DataStore.addSession({
+      DataStore.addSession(user.id, {
         date: form.date,
         exerciseName: form.exerciseName.trim(),
         durationMinutes: Number(form.durationMinutes),
         note: form.note.trim(),
-        ...(imageId ? { imageId } : {}),
+        ...(imageId ? { imageId, photoTakenAt } : {}),
       })
       if (photoPreview) URL.revokeObjectURL(photoPreview)
       setForm({ ...EMPTY_FORM, date: form.date })
       setErrors({})
       setPhotoFile(null)
       setPhotoPreview(null)
+      setPhotoTakenAt(null)
       setToast({ message: '운동이 기록되었습니다 💪', type: 'success' })
-    } catch {
-      setToast({ message: '저장 실패: 저장 공간이 부족합니다', type: 'error' })
+    } catch (err) {
+      const msg = err.name === 'QuotaExceededError'
+        ? '저장 실패: 저장 공간이 부족합니다'
+        : `저장 실패: ${err.message || err.name}`
+      setToast({ message: msg, type: 'error' })
     } finally {
       setSaving(false)
     }
@@ -172,6 +182,9 @@ export default function RecordTab() {
                 type="button" onClick={removePhoto}
                 className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm"
               >✕</button>
+              {photoTakenAt && (
+                <p className="text-xs text-gray-500 mt-1">{formatPhotoTime(photoTakenAt)}</p>
+              )}
             </div>
           ) : (
             <button

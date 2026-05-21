@@ -1,5 +1,8 @@
-const SESSIONS_KEY = 'gym_sessions'
+import { generateUUID } from '../utils/uuid'
+
 const FAVORITES_KEY = 'gym_favorites'
+
+function sessionsKey(userId) { return `gym_sessions_${userId}` }
 
 function readJSON(key, fallback) {
   try {
@@ -15,33 +18,32 @@ function writeJSON(key, value) {
 }
 
 export const DataStore = {
-  getSessions() {
-    return readJSON(SESSIONS_KEY, [])
+  getSessions(userId) {
+    return readJSON(sessionsKey(userId), [])
   },
 
-  addSession(session) {
-    const sessions = this.getSessions()
+  addSession(userId, session) {
+    const sessions = this.getSessions(userId)
     const newSession = {
       ...session,
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       createdAt: new Date().toISOString(),
     }
-    // localStorage.setItem throws QuotaExceededError — let it propagate
-    writeJSON(SESSIONS_KEY, [...sessions, newSession])
+    writeJSON(sessionsKey(userId), [...sessions, newSession])
     return newSession
   },
 
-  updateSession(id, updates) {
-    const sessions = this.getSessions()
+  updateSession(userId, id, updates) {
+    const sessions = this.getSessions(userId)
     const idx = sessions.findIndex(s => s.id === id)
     if (idx === -1) return
     sessions[idx] = { ...sessions[idx], ...updates }
-    writeJSON(SESSIONS_KEY, sessions)
+    writeJSON(sessionsKey(userId), sessions)
   },
 
-  deleteSession(id) {
-    const sessions = this.getSessions()
-    writeJSON(SESSIONS_KEY, sessions.filter(s => s.id !== id))
+  deleteSession(userId, id) {
+    const sessions = this.getSessions(userId)
+    writeJSON(sessionsKey(userId), sessions.filter(s => s.id !== id))
   },
 
   getFavorites() {

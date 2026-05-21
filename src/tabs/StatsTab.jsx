@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { DataStore } from '../store/DataStore'
+import { useAuth } from '../context/AuthContext'
 import { getWeeklyStats, getMonthlyHeatmap, getMonthlySummary, getTrendData, getSunday } from '../stats/StatsEngine'
 
 const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
@@ -95,7 +96,8 @@ function TrendChart({ sessions }) {
 }
 
 export default function StatsTab() {
-  const sessions = useMemo(() => DataStore.getSessions(), [])
+  const { user } = useAuth()
+  const sessions = useMemo(() => DataStore.getSessions(user.id), [user.id])
   const weekData = useMemo(() => getWeeklyStats(sessions, getSunday(new Date())), [sessions])
   const now = new Date()
   const summary = useMemo(() => getMonthlySummary(sessions, now.getFullYear(), now.getMonth() + 1), [sessions])
@@ -107,9 +109,9 @@ export default function StatsTab() {
       {/* 월간 요약 카드 */}
       <div className="grid grid-cols-2 gap-3 mb-6">
         <div className="bg-blue-50 rounded-2xl p-4">
-          <p className="text-sm text-blue-600 font-medium">이번 달 세션</p>
+          <p className="text-sm text-blue-600 font-medium">이번 달 운동일</p>
           <p className="text-3xl font-bold text-blue-700 mt-1">{summary.count}</p>
-          <p className="text-xs text-blue-500 mt-0.5">회</p>
+          <p className="text-xs text-blue-500 mt-0.5">일</p>
         </div>
         <div className="bg-green-50 rounded-2xl p-4">
           <p className="text-sm text-green-600 font-medium">이번 달 운동</p>

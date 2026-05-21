@@ -6,7 +6,7 @@ export function getMonthlySummary(sessions, year, month) {
   const prefix = `${year}-${String(month).padStart(2, '0')}`
   const thisMonth = sessions.filter(s => s.date.startsWith(prefix))
   return {
-    count: thisMonth.length,
+    count: new Set(thisMonth.map(s => s.date)).size,
     totalMinutes: thisMonth.reduce((sum, s) => sum + s.durationMinutes, 0),
   }
 }

@@ -1,3 +1,5 @@
+import { generateUUID } from '../utils/uuid'
+
 const DB_NAME = 'gym_images'
 const STORE_NAME = 'images'
 
@@ -12,7 +14,7 @@ function openDB() {
 
 export const ImageStore = {
   async save(blob) {
-    const id = crypto.randomUUID()
+    const id = generateUUID()
     const db = await openDB()
     return new Promise((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readwrite')
