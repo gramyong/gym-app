@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"/Users/macbook/Desktop/클로드코드/풀스텍개발/.claude/agents/code-analyst\" \"/Users/macbook/Desktop/클로드코드/풀스텍개발/.claude/skills/code-reader\")",
+      "Bash(cat ~/Desktop/tech2-business-platform/server/routes/auth-routes.js)",
+      "Read(//Users/macbook/Desktop/tech2-business-platform/server/routes/**)",
+      "Bash(node -e ' *)",
+      "Bash(cat ~/Desktop/tech2-business-platform/server/data/reset_pw.js)",
+      "Read(//Users/macbook/Desktop/tech2-business-platform/server/data/**)",
+      "Read(//Users/macbook/Desktop/tech2-business-platform/**)",
+      "Bash(node server/app.js)",
+      "Bash(curl -s http://localhost:4000)",
+      "Bash(ls /Users/macbook/Desktop/tech2-business-platform/public/js/ && mkdir -p /Users/macbook/Desktop/tech2-business-platform/public/css)",
+      "Bash(python3)",
+      "Bash(python3 -c ' *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:4000/tech2/\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:4000/tech2/css/styles.css\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:4000/tech2/%EA%B4%80%EB%A6%AC%EC%9E%90%20%ED%99%88%ED%99%94%EB%A9%B4.html\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:4000/tech2/js/app.js\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:4000/tech2/js/home-admin.js\")",
+      "Bash(curl -s \"http://localhost:4000/tech2/\")",
+      "Bash(node --check /Users/macbook/Desktop/tech2-business-platform/public/js/app.js)",
+      "Bash(node --check /Users/macbook/Desktop/tech2-business-platform/public/js/home-admin.js)",
+      "Bash(node --check /Users/macbook/Desktop/tech2-business-platform/public/js/home-leader.js)",
+      "Bash(node --check /Users/macbook/Desktop/tech2-business-platform/public/js/home-member.js)",
+      "Bash(node --check /Users/macbook/Desktop/tech2-business-platform/public/js/home-sales.js)"
+    ],
+    "additionalDirectories": [
+      "/Users/macbook/Desktop/클로드코드/풀스텍개발/.claude/agents",
+      "/Users/macbook/Desktop/tech2-business-platform/public/css",
+      "/Users/macbook/Desktop/tech2-business-platform/public/js"
+    ]
+  }
+}
