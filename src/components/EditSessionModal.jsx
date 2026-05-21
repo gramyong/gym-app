@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { validateSession } from '../utils/validateSession'
 
 export default function EditSessionModal({ session, onSave, onClose }) {
   const [form, setForm] = useState({
@@ -17,9 +18,7 @@ export default function EditSessionModal({ session, onSave, onClose }) {
 
   function handleSubmit(e) {
     e.preventDefault()
-    const next = {}
-    if (!form.exerciseName.trim()) next.exerciseName = '운동 이름을 입력하세요'
-    if (!form.durationMinutes || Number(form.durationMinutes) <= 0) next.durationMinutes = '소요 시간을 입력하세요'
+    const next = validateSession(form)
     if (Object.keys(next).length) { setErrors(next); return }
 
     onSave({

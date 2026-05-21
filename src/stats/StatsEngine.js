@@ -1,4 +1,15 @@
+import { toDateString } from '../utils/dateUtils'
+
 const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
+
+export function getMonthlySummary(sessions, year, month) {
+  const prefix = `${year}-${String(month).padStart(2, '0')}`
+  const thisMonth = sessions.filter(s => s.date.startsWith(prefix))
+  return {
+    count: thisMonth.length,
+    totalMinutes: thisMonth.reduce((sum, s) => sum + s.durationMinutes, 0),
+  }
+}
 
 // weekStart: Date object — 해당 주의 일요일 0시
 export function getWeeklyStats(sessions, weekStart) {
@@ -50,14 +61,6 @@ export function getTrendData(sessions, weeksBack = 8) {
   }
 
   return weeks
-}
-
-// 날짜를 YYYY-MM-DD 문자열로
-function toDateString(date) {
-  const yyyy = date.getFullYear()
-  const mm = String(date.getMonth() + 1).padStart(2, '0')
-  const dd = String(date.getDate()).padStart(2, '0')
-  return `${yyyy}-${mm}-${dd}`
 }
 
 // 해당 날짜가 속한 주의 일요일 반환

@@ -1,20 +1,9 @@
 import { useMemo } from 'react'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { DataStore } from '../store/DataStore'
-import { getWeeklyStats, getMonthlyHeatmap, getTrendData, getSunday } from '../stats/StatsEngine'
+import { getWeeklyStats, getMonthlyHeatmap, getMonthlySummary, getTrendData, getSunday } from '../stats/StatsEngine'
 
 const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
-
-function getMonthlySummary(sessions) {
-  const now = new Date()
-  const yyyy = now.getFullYear()
-  const mm = String(now.getMonth() + 1).padStart(2, '0')
-  const thisMonth = sessions.filter(s => s.date.startsWith(`${yyyy}-${mm}`))
-  return {
-    count: thisMonth.length,
-    totalMinutes: thisMonth.reduce((sum, s) => sum + s.durationMinutes, 0),
-  }
-}
 
 function MonthlyHeatmap({ sessions }) {
   const now = new Date()
@@ -108,7 +97,8 @@ function TrendChart({ sessions }) {
 export default function StatsTab() {
   const sessions = useMemo(() => DataStore.getSessions(), [])
   const weekData = useMemo(() => getWeeklyStats(sessions, getSunday(new Date())), [sessions])
-  const summary = useMemo(() => getMonthlySummary(sessions), [sessions])
+  const now = new Date()
+  const summary = useMemo(() => getMonthlySummary(sessions, now.getFullYear(), now.getMonth() + 1), [sessions])
 
   return (
     <div className="p-4 pb-6">

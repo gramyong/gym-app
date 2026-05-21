@@ -58,14 +58,18 @@ export default function HistoryTab() {
   const [sessions, setSessions] = useState(() => sortedSessions(DataStore.getSessions()))
   const [editTarget, setEditTarget] = useState(null)
 
+  function refresh() {
+    setSessions(sortedSessions(DataStore.getSessions()))
+  }
+
   function handleDelete(id) {
     DataStore.deleteSession(id)
-    setSessions(sortedSessions(DataStore.getSessions()))
+    refresh()
   }
 
   function handleSave(updates) {
     DataStore.updateSession(editTarget.id, updates)
-    setSessions(sortedSessions(DataStore.getSessions()))
+    refresh()
     setEditTarget(null)
   }
 

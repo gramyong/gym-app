@@ -1,14 +1,8 @@
 import { useState, useCallback } from 'react'
 import { DataStore } from '../store/DataStore'
 import Toast from '../components/Toast'
-
-function todayString() {
-  const d = new Date()
-  const yyyy = d.getFullYear()
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  const dd = String(d.getDate()).padStart(2, '0')
-  return `${yyyy}-${mm}-${dd}`
-}
+import { validateSession } from '../utils/validateSession'
+import { todayString } from '../utils/dateUtils'
 
 const EMPTY_FORM = { date: todayString(), exerciseName: '', durationMinutes: '', note: '' }
 
@@ -43,16 +37,9 @@ export default function RecordTab() {
     setFavorites(DataStore.getFavorites())
   }
 
-  function validate() {
-    const next = {}
-    if (!form.exerciseName.trim()) next.exerciseName = '운동 이름을 입력하세요'
-    if (!form.durationMinutes || Number(form.durationMinutes) <= 0) next.durationMinutes = '소요 시간을 입력하세요'
-    return next
-  }
-
   function handleSubmit(e) {
     e.preventDefault()
-    const next = validate()
+    const next = validateSession(form)
     if (Object.keys(next).length) {
       setErrors(next)
       return
